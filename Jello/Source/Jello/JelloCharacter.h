@@ -29,6 +29,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Character")
+	float DecreaseJumpValue;
+
+	virtual void Tick(float DeltaSeconds) override;
+
 protected:
 
 	/** Resets HMD orientation in VR. */
@@ -57,6 +62,10 @@ protected:
 
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
+
+	/** Called when something collides with this actor's capsule component**/
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 protected:
 	// APawn interface

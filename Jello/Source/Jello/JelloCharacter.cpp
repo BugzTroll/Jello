@@ -20,6 +20,7 @@ AJelloCharacter::AJelloCharacter()
 	// set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
+	DecreaseJumpValue = 50.0f;
 
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
@@ -29,7 +30,7 @@ AJelloCharacter::AJelloCharacter()
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
-	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->JumpZVelocity = 1000.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
@@ -43,8 +44,15 @@ AJelloCharacter::AJelloCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AJelloCharacter::OnHit);
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+}
+
+void AJelloCharacter::Tick(float DeltaSeconds)
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -90,6 +98,18 @@ void AJelloCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Locati
 void AJelloCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
 {
 		StopJumping();
+}
+
+void AJelloCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	UE_LOG(LogTemp, Display, TEXT("HIT!"));
+	FTimerHandle timerHandle;
+
+	if (GetCharacterMovement()->JumpZVelocity > 0.0f)
+	{
+		GetWorldTimerManager().SetTimer(timerHandle, this, &ACharacter::Jump, 1.0f, false, 0.10f);
+		GetCharacterMovement()->JumpZVelocity -= DecreaseJumpValue;
+	}
 }
 
 void AJelloCharacter::TurnAtRate(float Rate)
